@@ -2,10 +2,10 @@
  * BinClock.c
  * Jarrod Olivier
  * Modified by Keegan Crankshaw
- * Further Modified By: Mark Njoroge 
+ * Further Modified By: Mark Njoroge
  *
- * 
- * PSLTHE001 <STUDNUM_2>
+ *
+ * PSLTHE001 DCSDAV001
  * 18 August 2021
 */
 
