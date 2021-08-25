@@ -40,15 +40,15 @@ int main(int argc, char** argv){
     for(j = 0; j < Thread_Count; j++){
         if(pthread_join(Thread[j], 0)){
             pthread_mutex_lock(&Mutex);
-            printf("Problem joining thread %d\n", j);
+          //  printf("Problem joining thread %d\n", j);
             pthread_mutex_unlock(&Mutex);
         }
     }
 
   // No more active threads, so no more critical sections required
-
+double x=toc()/1e-3;
   printf("All threads have quit\n");
-  printf("Time taken for threads to run = %lg ms\n", toc()/1e-3);
+  printf("Time taken for threads to run = %lg ms\n", x);
 
   return 0;
 }
