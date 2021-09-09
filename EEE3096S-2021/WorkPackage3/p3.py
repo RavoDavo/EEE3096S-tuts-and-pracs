@@ -12,7 +12,7 @@ LED_value = [11, 13, 15]
 LED_accuracy = 32
 btn_submit = 16
 btn_increase = 18
-buzzer = None
+buzzer = 33
 eeprom = ES2EEPROMUtils.ES2EEPROM()
 
 
@@ -64,20 +64,45 @@ def display_scores(count, raw_data):
 # Setup Pins
 def setup():
     # Setup board mode
+    GPIO.setmode(GPIO.BOARD) #Sets the GPIO numbering to board numbers
+
     # Setup regular GPIO
+    GPIO.setup(LED_value[0], GPIO.OUT)
+    GPIO.setup(LED_value[1], GPIO.OUT)
+    GPIO.setup(LED_value[2], GPIO.OUT)
+
     # Setup PWM channels
+    GPIO.setup(LED_accuracy, GPIO.OUT)
+    pwm_led = GPIO.PWM(LEC_accuracy, 1000) #setting the frequency of the pwm_led
+
+    GPIO.setup(buzzer, GPIO.OUT)
+    pwm_buzzer = GPIO.PWM(buzzer, 800) #setting the frequency of the pwm_buzzer
+
+    # Setup for the push buttons
+    GPIO.setup(btn_submit, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(btn_increase, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
     # Setup debouncing and callbacks
-    pass
+    GPIO.add_event_detect(btn_submit, GPIO.BOTH, callback=btn_guess_pressed, bouncetime=200)
+    GPIO.add_event_detect(btn_increase, GPIO.BOTH, callback=btn_increase_pressed, bouncetime=200)
+
+
+pass
 
 
 # Load high scores
 def fetch_scores():
     # get however many scores there are
-    score_count = None
+    score_count = eeprom.read_block(0,0) # reads byte 0 of block 0 which is where the no. of scores is stored.
+
     # Get the scores
-    
+    scores = eeprom.read_block(5,score_count*16) # reads python list of bytes from the eeprom containing all the scores
+				    # 1 block is 4 bytes thus 4 blocks wide (3 blocks name and 4th being number) is 16 bytes
+
     # convert the codes back to ascii
-    
+    for i in score_count*4: # no. of indeces in the array
+	if (i
+		scores[i] = 
     # return back the results
     return score_count, scores
 
