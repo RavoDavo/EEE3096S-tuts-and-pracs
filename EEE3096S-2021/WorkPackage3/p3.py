@@ -3,6 +3,7 @@ import RPi.GPIO as GPIO
 import random
 import ES2EEPROMUtils
 import os
+import time
 
 # some global variables that need to change as we run the program
 end_of_game = None  # set if the user wins or ends the game
@@ -14,7 +15,6 @@ btn_submit = 16
 btn_increase = 18
 buzzer = 33
 eeprom = ES2EEPROMUtils.ES2EEPROM()
-
 
 # Print the game banner
 def welcome():
@@ -37,6 +37,7 @@ def menu():
     if option == "H":
         os.system('clear')
         print("HIGH SCORES!!")
+        #save_scores()
         s_count, ss = fetch_scores()
         display_scores(s_count, ss)
     elif option == "P":
@@ -56,8 +57,15 @@ def menu():
 
 def display_scores(count, raw_data):
     # print the scores to the screen in the expected format
-    print("There are {} scores. Here are the top 3!".format(count))
+    print("There are ", count," scores. Here are the top 3!".format(count))
+
+    sorted_scores = sorted(raw_data, key = lambda x: x[1])
+
     # print out the scores in the required format
+    print("1 - "+sorted_scores[0][0]+" took ", sorted_scores[0][1]," guesses")
+    print("2 - "+sorted_scores[1][0]+" took ", sorted_scores[1][1]," guesses")
+    print("3 - "+sorted_scores[2][0]+" took ", sorted_scores[2][1]," guesses")
+
     pass
 
 
@@ -68,15 +76,20 @@ def setup():
 
     # Setup regular GPIO
     GPIO.setup(LED_value[0], GPIO.OUT)
+    GPIO.output(LED_value[0], GPIO.LOW)
     GPIO.setup(LED_value[1], GPIO.OUT)
+    GPIO.output(LED_value[1], GPIO.LOW)
     GPIO.setup(LED_value[2], GPIO.OUT)
+    GPIO.output(LED_value[2], GPIO.LOW)
 
     # Setup PWM channels
     GPIO.setup(LED_accuracy, GPIO.OUT)
-    pwm_led = GPIO.PWM(LEC_accuracy, 1000) #setting the frequency of the pwm_led
+    GPIO.output(LED_accuracy, GPIO.LOW)
+    pwm_led = GPIO.PWM(LED_accuracy, 1000) #setting the frequency of the pwm_led
 
     GPIO.setup(buzzer, GPIO.OUT)
-    pwm_buzzer = GPIO.PWM(buzzer, 800) #setting the frequency of the pwm_buzzer
+    GPIO.output(buzzer, GPIO.LOW)
+    pwm_buzzer = GPIO.PWM(buzzer, 0.5) #setting the frequency of the pwm_buzzer
 
     # Setup for the push buttons
     GPIO.setup(btn_submit, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -93,28 +106,65 @@ pass
 # Load high scores
 def fetch_scores():
     # get however many scores there are
-    score_count = eeprom.read_block(0,0) # reads byte 0 of block 0 which is where the no. of scores is stored.
+	score_count = eeprom.read_byte(0) # reads byte 0 of block 0 which is where the no. of scores is stored.
 
     # Get the scores
-    scores = eeprom.read_block(5,score_count*16) # reads python list of bytes from the eeprom containing all the scores
-				    # 1 block is 4 bytes thus 4 blocks wide (3 blocks name and 4th being number) is 16 bytes
+	temp = eeprom.read_block(1,score_count*4) # reads python list of bytes from the eeprom containing all the score
+    # [1, 1122, 22, 333]
 
     # convert the codes back to ascii
-    for i in score_count*4: # no. of indeces in the array
-	if (i
-		scores[i] = 
+	for i in range(len(temp)):
+		if ((i+1)%4 != 0):
+			temp[i] = chr(temp[i])
+		else:
+			temp[i] = int(temp[i])
+
+	rows, cols = score_count, 2
+	scores = [[0 for i in range(cols)] for j in range(rows)]
+	#print(temp)
+
+	z = 0
+	for i in range(0,len(temp),4):
+		#print("I is ",i," and z is ", z)
+		scores[z][0] = temp[i]+temp[i+1]+temp[i+2]
+		scores[z][1] = temp[i+3]
+		#print(scores)
+		z+=1
+
     # return back the results
-    return score_count, scores
+	#print(scores)
+	return score_count, scores
 
 
 # Save high scores
 def save_scores():
     # fetch scores
+	temp = fetch_scores()
+	scores = temp[1]
+	score_count = temp[0]
+
+	score_count += 1
+	scores.append(["AbD",5])
+
     # include new score
+	eeprom.write_block(0, [score_count])
+	time.sleep(0.01)
+	#scores = [["ChB", 5], ["Ada", 7], ["LSu", 4], ["EEE", 8]]
+
+	scores.sort(key=lambda x: x[1])
+	for i, score in enumerate(scores):
+		data_to_write = [] #creates an array called data_to_write
+            # get the string
+		for letter in score[0]:
+			data_to_write.append(ord(letter))
+		data_to_write.append(score[1])
+		eeprom.write_block(i+1, data_to_write)
+		time.sleep(0.01)
     # sort
     # update total amount of scores
     # write new scores
-    pass
+	print(fetch_scores())
+	pass
 
 
 # Generate guess number
@@ -125,9 +175,38 @@ def generate_number():
 # Increase button pressed
 def btn_increase_pressed(channel):
     # Increase the value shown on the LEDs
-    # You can choose to have a global variable store the user's current guess, 
+	if guess == 1:
+		GPIO.output(LED_value[0], GPIO.HIGH)
+		GPIO.output(LED_value[1], GPIO.LOW)
+		GPIO.output(LED_value[2], GPIO.LOW)
+	elif guess == 2:
+		GPIO.output(LED_value[0], GPIO.LOW)
+		GPIO.output(LED_value[1], GPIO.HIGH)
+		GPIO.output(LED_value[2], GPIO.LOW)
+	elif guess ==3:
+		GPIO.output(LED_value[0], GPIO.LOW)
+		GPIO.output(LED_value[1], GPIO.LOW)
+		GPIO.output(LED_value[2], GPIO.HIGH)
+	elif guess == 4:
+		GPIO.output(LED_value[0], GPIO.HIGH)
+		GPIO.output(LED_value[1], GPIO.LOW)
+		GPIO.output(LED_value[2], GPIO.HIGH)
+	elif guess == 5:
+                GPIO.output(LED_value[0], GPIO.LOW)
+		GPIO.output(LED_value[1], GPIO.HIGH)
+		GPIO.output(LED_value[2], GPIO.HIGH)
+	elif guess == 6:
+		GPIO.output(LED_value[0], GPIO.HIGH)
+		GPIO.output(LED_value[1], GPIO.HIGH)
+		GPIO.output(LED_value[2], GPIO.HIGH)
+	else
+		GPIO.output(LED_value[0], GPIO.LOW)
+                GPIO.output(LED_value[1], GPIO.LOW)
+                GPIO.output(LED_value[2], GPIO.LOW)
+
+    # You can choose to have a global variable store the user's current guess,
     # or just pull the value off the LEDs when a user makes a guess
-    pass
+	pass
 
 
 # Guess button
@@ -166,14 +245,16 @@ def trigger_buzzer():
 
 
 if __name__ == "__main__":
-    try:
-        # Call setup function
-        setup()
-        welcome()
-        while True:
-            menu()
-            pass
-    except Exception as e:
-        print(e)
-    finally:
-        GPIO.cleanup()
+	try:
+	# Call setup function
+		setup()
+		welcome()
+		eeprom.populate_mock_scores()
+		while True:
+			menu()
+			pass
+	except Exception as e:
+		print(e)
+	finally:
+		GPIO.cleanup()
+
