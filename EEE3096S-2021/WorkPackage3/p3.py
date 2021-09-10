@@ -15,7 +15,9 @@ btn_submit = 16
 btn_increase = 18
 buzzer = 33
 eeprom = ES2EEPROMUtils.ES2EEPROM()
-int value=0
+value=0
+guess=0
+guessNo=0
 # Print the game banner
 def welcome():
     os.system('clear')
@@ -192,17 +194,17 @@ def btn_increase_pressed(channel):
 		GPIO.output(LED_value[1], GPIO.LOW)
 		GPIO.output(LED_value[2], GPIO.HIGH)
 	elif guess == 5:
-                GPIO.output(LED_value[0], GPIO.LOW)
+		GPIO.output(LED_value[0], GPIO.LOW)
 		GPIO.output(LED_value[1], GPIO.HIGH)
 		GPIO.output(LED_value[2], GPIO.HIGH)
 	elif guess == 6:
 		GPIO.output(LED_value[0], GPIO.HIGH)
 		GPIO.output(LED_value[1], GPIO.HIGH)
 		GPIO.output(LED_value[2], GPIO.HIGH)
-	else
+	else:
 		GPIO.output(LED_value[0], GPIO.LOW)
-                GPIO.output(LED_value[1], GPIO.LOW)
-                GPIO.output(LED_value[2], GPIO.LOW)
+		GPIO.output(LED_value[1], GPIO.LOW)
+		GPIO.output(LED_value[2], GPIO.LOW)
 
     # You can choose to have a global variable store the user's current guess,
     # or just pull the value off the LEDs when a user makes a guess
@@ -215,7 +217,7 @@ def btn_guess_pressed(channel):
 	while GPIO.input(btn_submit) == 0:
         	pass
 	end = time.time()
-   	elapsed = end.time() - start.Time()
+	elapsed = end.time() - start.Time()
 
 	if elapse>1:
 		GPIO.cleanup()
@@ -228,10 +230,10 @@ def btn_guess_pressed(channel):
            
 			buzzerPwm.stop()
 			pwm_led.stop()
-            		print("You guessed correctly, the number is: ", value)
-            		name = ""
-            		temp=""
-            		name = input("Enter your name, the first three letters will be taken")
+			print("You guessed correctly, the number is: ", value)
+			name = ""
+			temp=""
+			name = input("Enter your name, the first three letters will be taken")
 			for  letter in name:
 				if len(temp)<3:
 					temp+=letter
@@ -240,7 +242,7 @@ def btn_guess_pressed(channel):
 			name= temp
 			newScore=[name,guessNo]
 			save_scores(newScore)
-		else
+		else:
 			accuracy_leds()
 			trigger_buzzer()
 			 	    
@@ -255,7 +257,7 @@ def btn_guess_pressed(channel):
     # - add the new score
     # - sort the scores
     # - Store the scores back to the EEPROM, being sure to update the score count
-    pass
+	pass
 
 
 # LED Brightness
@@ -272,7 +274,7 @@ def accuracy_leds():
 		percent= (guess/value)
 		dutCycle= 100-percent
 		pwm_led.start(dutCycle)
-	else
+	else:
 		pwm_led.start(0)		
 	pass
 
@@ -295,7 +297,7 @@ def trigger_buzzer():
     # If the user is off by an absolute value of 3, the buzzer should sound once every second
     # If the user is off by an absolute value of 2, the buzzer should sound twice every second
     # If the user is off by an absolute value of 1, the buzzer should sound 4 times a second
-    pass
+    
 
 
 if __name__ == "__main__":
