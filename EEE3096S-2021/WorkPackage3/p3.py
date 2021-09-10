@@ -15,7 +15,7 @@ btn_submit = 16
 btn_increase = 18
 buzzer = 33
 eeprom = ES2EEPROMUtils.ES2EEPROM()
-
+int value=0
 # Print the game banner
 def welcome():
     os.system('clear')
@@ -137,14 +137,14 @@ def fetch_scores():
 
 
 # Save high scores
-def save_scores():
+def save_scores(newScore):
     # fetch scores
 	temp = fetch_scores()
 	scores = temp[1]
 	score_count = temp[0]
 
 	score_count += 1
-	scores.append(["AbD",5])
+	scores.append(newScore)
 
     # include new score
 	eeprom.write_block(0, [score_count])
@@ -211,6 +211,39 @@ def btn_increase_pressed(channel):
 
 # Guess button
 def btn_guess_pressed(channel):
+	start = time.time()
+	while GPIO.input(btn_submit) == 0:
+        	pass
+	end = time.time()
+   	elapsed = end.time() - start.Time()
+
+	if elapse>1:
+		GPIO.cleanup()
+		pwm_buzzer.stop()
+		pwm_led.stop()
+		menu()
+	else:
+		guessNo+=1
+		if guess == value:
+           
+			buzzerPwm.stop()
+			pwm_led.stop()
+            		print("You guessed correctly, the number is: ", value)
+            		name = ""
+            		temp=""
+            		name = input("Enter your name, the first three letters will be taken")
+			for  letter in name:
+				if len(temp)<3:
+					temp+=letter
+				pass
+
+			name= temp
+			newScore=[name,guessNo]
+			save_scores(newScore)
+		else
+			accuracy_leds()
+			trigger_buzzer()
+			 	    
     # If they've pressed and held the button, clear up the GPIO and take them back to the menu screen
     # Compare the actual value with the user value displayed on the LEDs
     # Change the PWM LED
@@ -231,10 +264,31 @@ def accuracy_leds():
     # - The % brightness should be directly proportional to the % "closeness"
     # - For example if the answer is 6 and a user guesses 4, the brightness should be at 4/6*100 = 66%
     # - If they guessed 7, the brightness would be at ((8-7)/(8-6)*100 = 50%
-    pass
+	if guess > value:
+		percent= ((8-guess/value)*100)
+		dutCycle=100-percent
+		pwm_led.start(dutCycle)
+	if guess < value:
+		percent= (guess/value)
+		dutCycle= 100-percent
+		pwm_led.start(dutCycle)
+	else
+		pwm_led.start(0)		
+	pass
 
 # Sound Buzzer
 def trigger_buzzer():
+	if abs(guess-value) ==  1:
+		pwm_buzzer = GPIO(buzzer, 0.125)
+		pwn_buzzer.start(50)
+	elif abs(guess-value) ==  2:
+		pwm_buzzer = GPIO.PWM(buzzer, 0.25)
+		pwm_buzzer.start(50)
+	elif abs(guess-value) ==  3:
+		pwm_buzzer = GPIO.PWM(buzzer, 0.5)
+		pwm_buzzer.start(50)
+	pass
+
     # The buzzer operates differently from the LED
     # While we want the brightness of the LED to change(duty cycle), we want the frequency of the buzzer to change
     # The buzzer duty cycle should be left at 50%
