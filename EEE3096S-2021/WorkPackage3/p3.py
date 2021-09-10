@@ -19,6 +19,8 @@ eeprom = ES2EEPROMUtils.ES2EEPROM()
 value=0
 guess=0
 guessNo=0
+pwm_led = None
+pwm_buzzer = None
 # Print the game banner
 
 def welcome():
@@ -49,6 +51,7 @@ def menu():
         print("Starting a new round!")
         print("Use the buttons on the Pi to make and submit your guess!")
         print("Press and hold the guess button to cancel your game")
+        global value
         value = generate_number()
         while not end_of_game:
             pass
@@ -89,6 +92,7 @@ def setup():
     # Setup PWM channels
     GPIO.setup(LED_accuracy, GPIO.OUT)
     GPIO.output(LED_accuracy, GPIO.LOW)
+    global pwm_led
     pwm_led = GPIO.PWM(LED_accuracy, 1000) #setting the frequency of the pwm_led
 
     GPIO.setup(buzzer, GPIO.OUT)
@@ -180,6 +184,7 @@ def generate_number():
 guess = 0
 def btn_increase_pressed(channel):
     # Increase the value shown on the LEDs
+	global guess
 	guess +=1
 	if guess == 1:
 		GPIO.output(LED_value[0], GPIO.HIGH)
@@ -223,7 +228,8 @@ def btn_increase_pressed(channel):
 
 # Guess button
 def btn_guess_pressed(channel):
-	guessNo = 0
+	global pwm_led, pwm_buzzer, end_of_game, value, guessNo, guess
+
 	start = time.time()
 	while GPIO.input(btn_submit) == 0:
         	pass
@@ -253,6 +259,7 @@ def btn_guess_pressed(channel):
 			name = temp
 			newScore = [name,guessNo]
 			save_scores(newScore)
+			end_of_game = True
 		else:
 			accuracy_leds()
 			trigger_buzzer()
@@ -277,8 +284,9 @@ def accuracy_leds():
     # - The % brightness should be directly proportional to the % "closeness"
     # - For example if the answer is 6 and a user guesses 4, the brightness should be at 4/6*100 = 66%
     # - If they guessed 7, the brightness would be at ((8-7)/(8-6)*100 = 50%
+	global pwm_led
 	if guess > value:
-		percent = ((8-guess/value)*100)
+		percent = (((8-guess)/(8-value))*100)
 		dutCycle=100-percent
 		pwm_led.start(dutCycle)
 	elif guess < value:
@@ -291,15 +299,19 @@ def accuracy_leds():
 
 # Sound Buzzer
 def trigger_buzzer():
+	global guess
+	global value
+	global pwm_buzzer
+
 	if abs(guess-value) ==  1:
-		pwm_buzzer = GPIO(buzzer, 0.125)
 		pwn_buzzer.start(50)
+		pwm_buzzer.ChangeFrequency(1)
 	elif abs(guess-value) ==  2:
-		pwm_buzzer = GPIO.PWM(buzzer, 0.25)
 		pwm_buzzer.start(50)
+		pwm_buzzer.ChangeFrequency(0.25)
 	elif abs(guess-value) ==  3:
-		pwm_buzzer = GPIO.PWM(buzzer, 0.5)
 		pwm_buzzer.start(50)
+		pwm_buzzer.ChangeFrequency(0.5)
 	pass
 
     # The buzzer operates differently from the LED
