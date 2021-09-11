@@ -38,26 +38,32 @@ def welcome():
 # Print the game menu
 def menu():
     global end_of_game
+    global value
     option = input("Select an option:   H - View High Scores     P - Play Game       Q - Quit\n")
     option = option.upper()
+
     if option == "H":
         os.system('clear')
         print("HIGH SCORES!!")
         #save_scores()
         s_count, ss = fetch_scores()
         display_scores(s_count, ss)
+
     elif option == "P":
         os.system('clear')
         print("Starting a new round!")
         print("Use the buttons on the Pi to make and submit your guess!")
         print("Press and hold the guess button to cancel your game")
-        global value
         value = generate_number()
+        guess = 0
+
         while not end_of_game:
             pass
+
     elif option == "Q":
         print("Come back soon!")
         exit()
+
     else:
         print("Invalid option. Please select a valid one!")
 
@@ -78,6 +84,8 @@ def display_scores(count, raw_data):
 
 # Setup Pins
 def setup():
+    global pwm_led
+    global pwm_buzzer
     # Setup board mode
     GPIO.setmode(GPIO.BOARD) #Sets the GPIO numbering to board numbers
 
@@ -92,12 +100,11 @@ def setup():
     # Setup PWM channels
     GPIO.setup(LED_accuracy, GPIO.OUT)
     GPIO.output(LED_accuracy, GPIO.LOW)
-    global pwm_led
-    pwm_led = GPIO.PWM(LED_accuracy, 1000) #setting the frequency of the pwm_led
+    pwm_led = GPIO.PWM(LED_accuracy, 10000) #setting the frequency of the pwm_led
 
     GPIO.setup(buzzer, GPIO.OUT)
     GPIO.output(buzzer, GPIO.LOW)
-    pwm_buzzer = GPIO.PWM(buzzer, 0.5) #setting the frequency of the pwm_buzzer
+    pwm_buzzer = GPIO.PWM(buzzer, 1) #setting the frequency of the pwm_buzzer
 
     # Setup for the push buttons
     GPIO.setup(btn_submit, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -113,14 +120,16 @@ pass
 
 # Load high scores
 def fetch_scores():
-    # get however many scores there are
+	global eeprom
+    	# get however many scores there are
+	global score_count
 	score_count = eeprom.read_byte(0) # reads byte 0 of block 0 which is where the no. of scores is stored.
 
-    # Get the scores
+    	# Get the scores
 	temp = eeprom.read_block(1,score_count*4) # reads python list of bytes from the eeprom containing all the score
-    # [1, 1122, 22, 333]
+    	# [1, 1122, 22, 333]
 
-    # convert the codes back to ascii
+    	# convert the codes back to ascii
 	for i in range(len(temp)):
 		if ((i+1)%4 != 0):
 			temp[i] = chr(temp[i])
@@ -129,49 +138,51 @@ def fetch_scores():
 
 	rows, cols = score_count, 2
 	scores = [[0 for i in range(cols)] for j in range(rows)]
-	#print(temp)
+	# print(temp)
 
+	# concatonate the names and populate the 2D array
 	z = 0
 	for i in range(0,len(temp),4):
-		#print("I is ",i," and z is ", z)
+		# print("I is ",i," and z is ", z)
 		scores[z][0] = temp[i]+temp[i+1]+temp[i+2]
 		scores[z][1] = temp[i+3]
-		#print(scores)
+		# print(scores)
 		z+=1
 
-    # return back the results
-	#print(scores)
+    	# return back the results
+	# print(scores)
 	return score_count, scores
 
 
 # Save high scores
 def save_scores(newScore):
-    # fetch scores
-	temp = fetch_scores()
-	scores = temp[1]
-	score_count = temp[0]
+        # fetch scores
+	score_count, scores = fetch_scores()
+	# scores = temp[1]
+	# score_count = temp[0]
 
-	score_count += 1
-	scores.append(newScore)
+	score_count += 1 # increment the total number of scores
+	scores.append(newScore) # add new score and name to list of scores
 
-    # include new score
-	eeprom.write_block(0, [score_count])
+        # include new score
+	eeprom.write_block(0, [score_count])  #update the total number of scores stored in the eeprom
 	time.sleep(0.01)
-	#scores = [["ChB", 5], ["Ada", 7], ["LSu", 4], ["EEE", 8]]
+	# scores = [["ChB", 5], ["Ada", 7], ["LSu", 4], ["EEE", 8]]
 
 	scores.sort(key=lambda x: x[1])
+
 	for i, score in enumerate(scores):
-		data_to_write = [] #creates an array called data_to_write
+		data_to_write = [] # creates an array called data_to_write
             # get the string
 		for letter in score[0]:
 			data_to_write.append(ord(letter))
 		data_to_write.append(score[1])
 		eeprom.write_block(i+1, data_to_write)
 		time.sleep(0.01)
-    # sort
-    # update total amount of scores
-    # write new scores
-	print(fetch_scores())
+	# sort
+	# update total amount of scores
+        # write new scores
+	#print(fetch_scores())
 	pass
 
 
@@ -231,22 +242,24 @@ def btn_guess_pressed(channel):
 	global pwm_led, pwm_buzzer, end_of_game, value, guessNo, guess
 
 	start = time.time()
-	while GPIO.input(btn_submit) == 0:
-        	pass
+	while GPIO.input(channel) == 0:
+        	time.sleep(0.005)
 	end = time.time()
 	elapsed = end - start
 
-	if elapsed > 1:
+	if elapsed >= 2:
 		GPIO.cleanup()
 		pwm_buzzer.stop()
 		pwm_led.stop()
+		end_of_game = True
 		menu()
+		return
 	else:
 		guessNo += 1
 		if guess == value:
 
-			#pwm_buzzer.stop()
-			#pwm_led.stop()
+			pwm_buzzer.stop()
+			pwm_led.stop()
 			print("You guessed correctly, the number is: ", value)
 			name = ""
 			temp = ""
@@ -260,6 +273,8 @@ def btn_guess_pressed(channel):
 			newScore = [name,guessNo]
 			save_scores(newScore)
 			end_of_game = True
+			menu()
+			return
 		else:
 			accuracy_leds()
 			trigger_buzzer()
@@ -287,14 +302,14 @@ def accuracy_leds():
 	global pwm_led
 	if guess > value:
 		percent = (((8-guess)/(8-value))*100)
-		dutCycle=100-percent
-		pwm_led.start(dutCycle)
-	elif guess < value:
-		percent = (guess/value)
-		dutCycle = 100-percent
-		pwm_led.start(dutCycle)
+		#dutCycle=100-percent
+		#pwm_led.start(dutCycle)
 	else:
-		pwm_led.start(0)
+		percent = (guess/value)
+		#dutCycle = 100-percent
+		#pwm_led.start(dutCycle)
+	pwm_led.start(percent)
+
 	pass
 
 # Sound Buzzer
@@ -304,7 +319,7 @@ def trigger_buzzer():
 	global pwm_buzzer
 
 	if abs(guess-value) ==  1:
-		pwn_buzzer.start(50)
+		pwm_buzzer.start(50)
 		pwm_buzzer.ChangeFrequency(1)
 	elif abs(guess-value) ==  2:
 		pwm_buzzer.start(50)
@@ -327,7 +342,7 @@ if __name__ == "__main__":
 	# Call setup function
 		setup()
 		welcome()
-		eeprom.populate_mock_scores()
+		#eeprom.populate_mock_scores()
 		while True:
 			menu()
 			pass
