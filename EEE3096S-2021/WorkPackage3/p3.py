@@ -192,9 +192,8 @@ def generate_number():
 
 
 # Increase button pressed
-guess = 0
 def btn_increase_pressed(channel):
-    # Increase the value shown on the LEDs
+    	# Increase the value shown on the LEDs
 	global guess
 	guess +=1
 	if guess == 1:
@@ -232,8 +231,8 @@ def btn_increase_pressed(channel):
 		GPIO.output(LED_value[1], GPIO.LOW)
 		GPIO.output(LED_value[2], GPIO.LOW)
 
-    # You can choose to have a global variable store the user's current guess,
-    # or just pull the value off the LEDs when a user makes a guess
+    	# You can choose to have a global variable store the user's current guess,
+    	# or just pull the value off the LEDs when a user makes a guess
 	pass
 
 
@@ -248,11 +247,11 @@ def btn_guess_pressed(channel):
 	elapsed = end - start
 
 	if elapsed >= 2:
-		GPIO.cleanup()
+		# GPIO.cleanup()
 		pwm_buzzer.stop()
 		pwm_led.stop()
 		end_of_game = True
-		menu()
+		# menu()
 		return
 	else:
 		guessNo += 1
@@ -278,6 +277,9 @@ def btn_guess_pressed(channel):
 		else:
 			accuracy_leds()
 			trigger_buzzer()
+			#time.sleep(0.005)
+			#pwm_led.stop()
+			#pwm_buzzer.stop()
 
     # If they've pressed and held the button, clear up the GPIO and take them back to the menu screen
     # Compare the actual value with the user value displayed on the LEDs
