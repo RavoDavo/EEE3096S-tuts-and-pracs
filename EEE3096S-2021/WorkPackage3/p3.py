@@ -85,6 +85,9 @@ def display_scores(count, raw_data):
     print("3 - "+sorted_scores[2][0]+" took ", sorted_scores[2][1]," guesses")
 
     pass
+def printTest(channel):
+    print("Button Submit Pressed")
+
 
 
 # Setup Pins
@@ -108,7 +111,7 @@ def setup():
     pwm_led = GPIO.PWM(LED_accuracy, 10000) #setting the frequency of the pwm_led
 
     GPIO.setup(buzzer, GPIO.OUT)
-    GPIO.output(buzzer, GPIO.LOW)
+    #GPIO.output(buzzer, GPIO.LOW)
     pwm_buzzer = GPIO.PWM(buzzer, 1) #setting the frequency of the pwm_buzzer
 
     # Setup for the push buttons
@@ -116,13 +119,15 @@ def setup():
     GPIO.setup(btn_increase, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     # Setup debouncing and callbacks
-    GPIO.add_event_detect(btn_submit, GPIO.BOTH, callback=btn_guess_pressed, bouncetime=350)
-    GPIO.add_event_detect(btn_increase, GPIO.BOTH, callback=btn_increase_pressed, bouncetime=350)
+    GPIO.add_event_detect(btn_submit, GPIO.FALLING, callback=btn_guess_pressed, bouncetime=300)
+    #GPIO.add_event_detect(btn_submit,GPIO.FALLING,callback=printTest, bouncetime=150)
+  #  GPIO.add_event_detect(btn_submit,GPIO.FALLING, bouncetime=150)
+   # GPIO.add_event_callback(btn_submit,btn_guess_pressed)
+    #GPIO.add_event_callback(btn_submit,printTest)
+    GPIO.add_event_detect(btn_increase, GPIO.FALLING, callback=btn_increase_pressed, bouncetime=150)
+	
 
-
-pass
-
-
+    pass
 # Load high scores
 def fetch_scores():
 	global eeprom
@@ -263,7 +268,7 @@ def btn_guess_pressed(channel):
 	else:
 		#guessNo += 1
 		if guess == value:
-			print("True true")
+	#		print("True true")
 
 			pwm_buzzer.stop()
 			pwm_led.stop()
@@ -284,11 +289,14 @@ def btn_guess_pressed(channel):
 			menu()
 			return
 		else:
+			
 			print("This is the else guess no: ",guessNo, "and guess: ",guess)
 			#guessNo+=1
 			accuracy_leds()
+			time.sleep(0.01)
 			trigger_buzzer()
 			time.sleep(1.5)
+			#guessNo+=1
 			pwm_led.stop()
 			pwm_buzzer.stop()
 
@@ -303,7 +311,7 @@ def btn_guess_pressed(channel):
     # - add the new score
     # - sort the scores
     # - Store the scores back to the EEPROM, being sure to update the score count
-	pass
+#	pass
 
 
 # LED Brightness
@@ -354,7 +362,8 @@ if __name__ == "__main__":
 	try:
 	# Call setup function
 		setup()
-		welcome()		#eeprom.populate_mock_scores()
+		welcome()
+		eeprom.populate_mock_scores()
 		while True:
 			menu()
 			pass
