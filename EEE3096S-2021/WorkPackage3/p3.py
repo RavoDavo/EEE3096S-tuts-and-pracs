@@ -39,10 +39,7 @@ def welcome():
 
 # Print the game menu
 def menu():
-
-    global end_of_game
-    global value
-    global guess, guessNo
+    global end_of_game, value, guess, guessNo 
 	
     option = input("Select an option:   H - View High Scores     P - Play Game       Q - Quit\n")
     option = option.upper()
@@ -95,8 +92,7 @@ def display_scores(count, raw_data):
 	
 # Setup Pins
 def setup():
-    global pwm_led
-    global pwm_buzzer
+    global pwm_led, pwm_buzzer
 	
     # Setup board mode
     GPIO.setmode(GPIO.BOARD) #Sets the GPIO numbering to board numbers
@@ -136,8 +132,7 @@ def setup():
 
 # Load high scores
 def fetch_scores():
-	global eeprom
-    	global score_count
+	global eeprom, score_count
 	
 	score_count = eeprom.read_byte(0) # reads byte 0 of block 0 which is where the no. of scores is stored.
 
@@ -255,14 +250,17 @@ def btn_increase_pressed(channel):
 
 # Guess button
 def btn_guess_pressed(channel):
-	global pwm_led, pwm_buzzer, end_of_game, value, guessNo, guess
+	global pwm_led, pwm_buzzer, end_of_game, value, guessNo, guess # global variable definitions
 	guessNo+=1
+	
+	# timing the elapsed time that occurs after the button is pressed
 	start = time.time()
 	while GPIO.input(channel) == 0:
         	time.sleep(0.005)
 	end = time.time()
 	elapsed = end - start
 
+	# If they've pressed and held the button, clear up the GPIO and take them back to the menu screen
 	if elapsed >= 2:
 		# GPIO.cleanup()
 		pwm_buzzer.stop()
@@ -272,96 +270,82 @@ def btn_guess_pressed(channel):
 		# menu()
 		return
 	else:
-		#guessNo += 1
-		if guess == value:
-	#		print("True true")
+		# guessNo += 1
+		# Compare the actual value with the user value displayed on the LEDs
+		if guess == value: # if it's an exact guess:
+			# print("True true")
 
-			pwm_buzzer.stop()
-			pwm_led.stop()
+			pwm_buzzer.stop() # - Disable LEDs and Buzzer
+			pwm_led.stop() # Change the PWM LED
 			print("You guessed correctly, the number is: ", value)
 			name = ""
 			temp = ""
-			name = input("Enter your name, the first three letters will be taken: ")
+			name = input("Enter your name, the first three letters will be taken: ") # - tell the user and prompt them for a name
 			for  letter in name:
 				if len(temp)<3:
 					temp += letter
 				pass
 
 			name = temp
-			newScore = [name,guessNo]
-			save_scores(newScore)
-			end_of_game = True
-			GPIO.output(tuple(LED_value),GPIO.LOW)
-			menu()
+			newScore = [name,guessNo] # - add the new score
+			save_scores(newScore)  # - Store the scores back to the EEPROM, being sure to update the score count
+			end_of_game = True # end of game
+			GPIO.output(tuple(LED_value),GPIO.LOW) # reset all the guessing LEDS
+			menu() # display menu options
 			return
 		else:
 			
-			print("This is the else guess no: ",guessNo, "and guess: ",guess)
-			#guessNo+=1
-			accuracy_leds()
+			# print("This is the else guess no: ",guessNo, "and guess: ",guess)
+			# guessNo+=1
+			accuracy_leds() # see how close the guess was to the value 
 			time.sleep(0.01)
-			trigger_buzzer()
+			trigger_buzzer() # if it's close enough, adjust the buzzer
 			time.sleep(1.5)
-			#guessNo+=1
-			pwm_led.stop()
+			pwm_led.stop() # stop both the PWM LED and Buzzer after 1.5 seconds
 			pwm_buzzer.stop()
-
-    # If they've pressed and held the button, clear up the GPIO and take them back to the menu screen
-    # Compare the actual value with the user value displayed on the LEDs
-    # Change the PWM LED
-    # if it's close enough, adjust the buzzer
-    # if it's an exact guess:
-    # - Disable LEDs and Buzzer
-    # - tell the user and prompt them for a name
-    # - fetch all the scores
-    # - add the new score
-    # - sort the scores
-    # - Store the scores back to the EEPROM, being sure to update the score count
-#	pass
+	# pass
 
 
 # LED Brightness
 def accuracy_leds():
-    # Set the brightness of the LED based on how close the guess is to the answer
-    # - The % brightness should be directly proportional to the % "closeness"
-    # - For example if the answer is 6 and a user guesses 4, the brightness should be at 4/6*100 = 66%
-    # - If they guessed 7, the brightness would be at ((8-7)/(8-6)*100 = 50%
+        # Set the brightness of the LED based on how close the guess is to the answer
+        # - For example if the answer is 6 and a user guesses 4, the brightness should be at 4/6*100 = 66%
 	global pwm_led
+	
 	if guess > value:
-		percent = (((8-guess)/(8-value))*100)
+		# - If they guessed 7, the brightness would be at ((8-7)/(8-6)*100 = 50%
+		percent = (((8-guess)/(8-value))*100)  # - The % brightness should be directly proportional to the % "closeness"
 		#dutCycle=100-percent
 		#pwm_led.start(dutCycle)
 	else:
 		percent = (guess/value)
 		#dutCycle = 100-percent
 		#pwm_led.start(dutCycle)
+		
 	pwm_led.start(percent)
 
 	pass
 
 # Sound Buzzer
 def trigger_buzzer():
-	global guess
-	global value
-	global pwm_buzzer
+	# When the brightness of the LED changes(duty cycle), the frequency of the buzzer should change
+	global guess, value, pwm_buzzer
 
+	# If the user is off by an absolute value of 3, the buzzer should sound once every second
 	if abs(guess-value) ==  1:
 		pwm_buzzer.start(50)
 		pwm_buzzer.ChangeFrequency(1)
+		
+	# If the user is off by an absolute value of 2, the buzzer should sound twice every second
 	elif abs(guess-value) ==  2:
 		pwm_buzzer.start(50)
 		pwm_buzzer.ChangeFrequency(2)
+		
+	# If the user is off by an absolute value of 1, the buzzer should sound 4 times a second
 	elif abs(guess-value) ==  3:
 		pwm_buzzer.start(50)
 		pwm_buzzer.ChangeFrequency(4)
 	pass
-
-    # The buzzer operates differently from the LED
-    # While we want the brightness of the LED to change(duty cycle), we want the frequency of the buzzer to change
-    # The buzzer duty cycle should be left at 50%
-    # If the user is off by an absolute value of 3, the buzzer should sound once every second
-    # If the user is off by an absolute value of 2, the buzzer should sound twice every second
-    # If the user is off by an absolute value of 1, the buzzer should sound 4 times a second
 
 
 if __name__ == "__main__":
@@ -369,7 +353,7 @@ if __name__ == "__main__":
 	# Call setup function
 		setup()
 		welcome()
-		eeprom.populate_mock_scores()
+		# eeprom.populate_mock_scores()
 		while True:
 			menu()
 			pass
@@ -377,4 +361,3 @@ if __name__ == "__main__":
 		print(e)
 	finally:
 		GPIO.cleanup()
-
