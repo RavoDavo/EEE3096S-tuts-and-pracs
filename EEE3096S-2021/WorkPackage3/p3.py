@@ -9,19 +9,21 @@ import time
 end_of_game = None  # set if the user wins or ends the game
 
 # DEFINE THE PINS USED HERE
-LED_value = [11, 13, 15]
-LED_accuracy = 32
+LED_value = [11, 13, 15] # guess number LEDS
+LED_accuracy = 32 # pwm accuracy LEDs
 btn_submit = 16
 btn_increase = 18
 buzzer = 33
 eeprom = ES2EEPROMUtils.ES2EEPROM()
 
+# Defining variables for guess, number of submitted guesses and the random value
 value=0
 guess=0
 guessNo=0
 pwm_led = None
 pwm_buzzer = None
 # Print the game banner
+
 
 def welcome():
     os.system('clear')
@@ -63,7 +65,7 @@ def menu():
         guessNo=0
         while not end_of_game:
             pass
-        guess=0
+        guess=0 # reset the number of guesses so that the game may be played again
         end_of_game=False
     elif option == "Q":
         print("Come back soon!")
@@ -72,11 +74,12 @@ def menu():
     else:
         print("Invalid option. Please select a valid one!")
 
-
+	
 def display_scores(count, raw_data):
     # print the scores to the screen in the expected format
     print("There are ", count," scores. Here are the top 3!".format(count))
-
+	
+    # Orders the array of high scores in terms of best and worst scores
     sorted_scores = sorted(raw_data, key = lambda x: x[1])
 
     # print out the scores in the required format
@@ -85,15 +88,16 @@ def display_scores(count, raw_data):
     print("3 - "+sorted_scores[2][0]+" took ", sorted_scores[2][1]," guesses")
 
     pass
-def printTest(channel):
-    print("Button Submit Pressed")
 
+    # def printTest(channel):
+    # print("Button Submit Pressed")
 
-
+	
 # Setup Pins
 def setup():
     global pwm_led
     global pwm_buzzer
+	
     # Setup board mode
     GPIO.setmode(GPIO.BOARD) #Sets the GPIO numbering to board numbers
 
@@ -105,37 +109,39 @@ def setup():
     GPIO.setup(LED_value[2], GPIO.OUT)
     GPIO.output(LED_value[2], GPIO.LOW)
 
-    # Setup PWM channels
+    # Setup PWM LED channel
     GPIO.setup(LED_accuracy, GPIO.OUT)
     GPIO.output(LED_accuracy, GPIO.LOW)
     pwm_led = GPIO.PWM(LED_accuracy, 10000) #setting the frequency of the pwm_led
 
+    # Setup PWM buzzer channel
     GPIO.setup(buzzer, GPIO.OUT)
     #GPIO.output(buzzer, GPIO.LOW)
     pwm_buzzer = GPIO.PWM(buzzer, 1) #setting the frequency of the pwm_buzzer
 
-    # Setup for the push buttons
+    # Setup for the push buttonss
     GPIO.setup(btn_submit, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(btn_increase, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     # Setup debouncing and callbacks
     GPIO.add_event_detect(btn_submit, GPIO.FALLING, callback=btn_guess_pressed, bouncetime=300)
-    #GPIO.add_event_detect(btn_submit,GPIO.FALLING,callback=printTest, bouncetime=150)
-  #  GPIO.add_event_detect(btn_submit,GPIO.FALLING, bouncetime=150)
-   # GPIO.add_event_callback(btn_submit,btn_guess_pressed)
-    #GPIO.add_event_callback(btn_submit,printTest)
+    # GPIO.add_event_detect(btn_submit,GPIO.FALLING,callback=printTest, bouncetime=150)
+    # GPIO.add_event_detect(btn_submit,GPIO.FALLING, bouncetime=150)
+    # GPIO.add_event_callback(btn_submit,btn_guess_pressed)
+    # GPIO.add_event_callback(btn_submit,printTest)
     GPIO.add_event_detect(btn_increase, GPIO.FALLING, callback=btn_increase_pressed, bouncetime=150)
-	
 
     pass
+
+
 # Load high scores
 def fetch_scores():
 	global eeprom
-    	# get however many scores there are
-	global score_count
+    	global score_count
+	
 	score_count = eeprom.read_byte(0) # reads byte 0 of block 0 which is where the no. of scores is stored.
 
-    	# Get the scores
+    	# get however many scores there are
 	temp = eeprom.read_block(1,score_count*4) # reads python list of bytes from the eeprom containing all the score
     	# [1, 1122, 22, 333]
 
@@ -147,10 +153,12 @@ def fetch_scores():
 			temp[i] = int(temp[i])
 
 	rows, cols = score_count, 2
+	
+	# create a 2D array to store the name and score of the player
 	scores = [[0 for i in range(cols)] for j in range(rows)]
 	# print(temp)
 
-	# concatonate the names and populate the 2D array
+	# concatenate the names and populate the 2D array
 	z = 0
 	for i in range(0,len(temp),4):
 		# print("I is ",i," and z is ", z)
@@ -175,23 +183,22 @@ def save_scores(newScore):
 	scores.append(newScore) # add new score and name to list of scores
 
         # include new score
-	eeprom.write_block(0, [score_count])  #update the total number of scores stored in the eeprom
+	eeprom.write_block(0, [score_count])  # update the total number of scores stored in the eeprom
 	time.sleep(0.01)
 	# scores = [["ChB", 5], ["Ada", 7], ["LSu", 4], ["EEE", 8]]
 
+	# sorts the scores
 	scores.sort(key=lambda x: x[1])
 
 	for i, score in enumerate(scores):
 		data_to_write = [] # creates an array called data_to_write
-            # get the string
+          	
 		for letter in score[0]:
 			data_to_write.append(ord(letter))
 		data_to_write.append(score[1])
-		eeprom.write_block(i+1, data_to_write)
+		eeprom.write_block(i+1, data_to_write)  # update total amount of scores
 		time.sleep(0.01)
-	# sort
-	# update total amount of scores
-        # write new scores
+	
 	#print(fetch_scores())
 	pass
 
@@ -204,9 +211,10 @@ def generate_number():
 # Increase button pressed
 def btn_increase_pressed(channel):
     	# Increase the value shown on the LEDs
-	global guess
+	global guess # You can choose to have a global variable store the user's current guess,
 	guess+=1
-	print("btn pressed: ",guess)
+	print("btn pressed: ",guess) # Allows the player to view their current guess value
+	
 	if guess == 1:
 		GPIO.output(LED_value[0], GPIO.HIGH)
 		GPIO.output(LED_value[1], GPIO.LOW)
@@ -242,8 +250,6 @@ def btn_increase_pressed(channel):
 		GPIO.output(LED_value[1], GPIO.LOW)
 		GPIO.output(LED_value[2], GPIO.LOW)
 
-    	# You can choose to have a global variable store the user's current guess,
-    	# or just pull the value off the LEDs when a user makes a guess
 	pass
 
 
