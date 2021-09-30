@@ -30,12 +30,7 @@ def printADC():
 	This function formats the prinnting of the ADC values
 	"""
 	TA = (Temp.voltage-V0)/TC
-	
-	
-
 	print(datetime.datetime.now()+'s\t\t'+ str(Temp.value)+'\t\t\t'+str(round(TA,2))+" C\t\t"+str(LDR.value))
-	
-
 	
 
 def print_sensor_thread():
@@ -48,7 +43,6 @@ def print_sensor_thread():
 	printADC()
 
 if __name__ == "__main__":
-
 	print("Runtime\t\tTemp Reading\t\tTemp\t\tLight Reading")
 	print_sensor_thread() # call it once to start the thread
 
