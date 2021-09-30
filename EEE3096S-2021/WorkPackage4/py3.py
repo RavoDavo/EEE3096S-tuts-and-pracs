@@ -29,7 +29,7 @@ def printADC():
 	This function formats the prinnting of the ADC values
 	"""
 	TA = (Temp.voltage-V0)/TC
-	print("Runtime\t\tTemp Reading\t\t\tTemp\t\tLight Reading")
+	print("Runtime\t\tTemp Reading\t\tTemp\t\tLight Reading")
 	i = 0
 
 	print(str(i)+'s\t\t'+ str(Temp.value)+'\t\t\t'+str(round(TA,2))+" C\t\t"+str(LDR.value))
@@ -42,18 +42,17 @@ def printADC():
 		sleep(1.5)
 
 def print_sensor_thread():
-    """
-    This function prints the ADC sensor values to the screen every ten seconds
-    """
-    thread = threading.Timer(10.0, print_sensor_thread)
-    thread.daemon = True  # Daemon threads exit when the program does
-    thread.start()
-    printADC()
-    
+	"""
+	This function prints the ADC sensor values to the screen every ten seconds
+	"""
+	thread = threading.Timer(10.0, print_sensor_thread)
+	thread.daemon = True  # Daemon threads exit when the program does
+	thread.start()
+	printADC()
 
 if __name__ == "__main__":
-	print_time_thread() # call it once to start the thread
-    	
+	print_sensor_thread() # call it once to start the thread
+
 	# Tell our program to run indefinitely
 	while True:
 		pass
