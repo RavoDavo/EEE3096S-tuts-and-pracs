@@ -29,23 +29,14 @@ def printADC():
 	print("Runtime        Temp Reading    Temp          Light Reading      ")
 	i = 0
 
-	print(str(i)+'s             '+ str(Temp.value)+'           '+str(TA)+" C       "+str(LDR.value))
+	print(str(i)+'s             '+ str(Temp.value)+'           '+str(round(TA,2))+" C       "+str(LDR.value))
 	i = i+10
 
 	while (True):
-		print(str(i)+'s            '+ str(Temp.value)+'  	       '+str(TA)+" C       "+str(LDR.value))
+		print(str(i)+'s            '+ str(Temp.value)+'  	       '+str(round(TA,2))+" C       "+str(LDR.value))
 		#print('ADC Voltage: ' + str(chan.voltage) + 'V')
 		i = i+10
 		sleep(1.5)
-
-if __name__ == "__main__":
-	printADC()
-=======
-printADC():
-	print(str(i)+'s             '+ str(Temp.value)+'           '+str(Temp.value)+" C       "+str(LDR.value))
-	#print('ADC Voltage: ' + str(chan.voltage) + 'V')
-	
-
 
 def print_sensor_thread():
     """
@@ -58,11 +49,10 @@ def print_sensor_thread():
     
 
 if __name__ == "__main__":
-
 	print("Runtime        Temp Reading    Temp          Light Reading      ")
-    print_time_thread() # call it once to start the thread
-    
-    # Tell our program to run indefinitely
-    while True:
-        pass
->>>>>>> 2cdc03a12288bc740a75d2b4a030ad0e7076fa4c
+	print_time_thread() # call it once to start the thread
+    	
+	# Tell our program to run indefinitely
+	while True:
+		pass
+
