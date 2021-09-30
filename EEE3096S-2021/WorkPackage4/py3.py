@@ -6,10 +6,9 @@ import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 import threading
 import datetime
-import RPi.GPIO as GPIO
 #board.D16 for the GPIO16
 
-btn_sample_rate = 36
+btn_sample_rate 
 
 # create the spi bus
 spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
@@ -31,9 +30,10 @@ def config():
 	"""
 	Setup the button and callbacks 
 	"""
-	GPIO.setmode(GPIO.BOARD) # Sets the GPIO numbering to board numbers
-	GPIO.setup(btn_sample_rate, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Setups the button
-	GPIO.add_event_detect(btn_sample_rate, GPIO.FALLING, callback=print_sensor_thread, bouncetime=150) # adds an event detection
+	global btn_sample_rate 
+	btn_sample_rate = digitalio.DigitalInOut(board.D16) # Sets the GPIO numbering to board numbers
+	switch.switch_to_input(pull=digitalio.Pull.UP) # If pull up doesnt work use Pull Down
+	# Need to implement manual debouncing 
 
 def printADC():
 	"""
@@ -59,5 +59,6 @@ if __name__ == "__main__":
 
 	# Tell our program to run indefinitely
 	while True:
+		# Check button press
 		pass
 
