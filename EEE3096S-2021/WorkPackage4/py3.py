@@ -20,10 +20,16 @@ mcp = MCP.MCP3008(spi, cs)
 Temp = AnalogIn(mcp, MCP.P1)
 LDR = AnalogIn(mcp, MCP.P2)
 
-print("Runtime        Temp Reading    Temp          Light Reading      ")
-i = 0
-while (True):
-	print(str(i)+'s            '+ str(Temp.value)+'  	       '+str(Temp.value)+" C       "+str(LDR.voltage))
-	#print('ADC Voltage: ' + str(chan.voltage) + 'V')
+printADC():
+	print("Runtime        Temp Reading    Temp          Light Reading      ")
+	i = 0
+
+	print(str(i)+'s             '+ str(Temp.value)+'           '+str(Temp.value)+" C       "+str(LDR.value))
 	i = i+10
-	sleep(1.5)
+
+	while (True):
+		print(str(i)+'s            '+ str(Temp.value)+'  	       '+str(Temp.value)+" C       "+str(LDR.value))
+		#print('ADC Voltage: ' + str(chan.voltage) + 'V')
+		i = i+10
+		sleep(1.5)
+
