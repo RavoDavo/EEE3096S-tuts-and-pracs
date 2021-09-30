@@ -22,24 +22,20 @@ LDR = AnalogIn(mcp, MCP.P2)
 
 V0 = 0.5
 TC = 0.01
-TA = (Temp.voltage-V0)/TC
+
 
 def printADC():
 	"""
 	This function formats the prinnting of the ADC values
 	"""
 	TA = (Temp.voltage-V0)/TC
-	print("Runtime\t\tTemp Reading\t\tTemp\t\tLight Reading")
-	i = 0
+	
+	
 
 	print(str(i)+'s\t\t'+ str(Temp.value)+'\t\t\t'+str(round(TA,2))+" C\t\t"+str(LDR.value))
-	i = i+10
+	
 
-	while (True):
-		print(str(i)+'s\t\t'+ str(Temp.value)+'\t\t\t'+str(round(TA,2))+" C\t\t"+str(LDR.value))
-		#print('ADC Voltage: ' + str(chan.voltage) + 'V')
-		i = i+10
-		sleep(1.5)
+	
 
 def print_sensor_thread():
 	"""
@@ -51,6 +47,8 @@ def print_sensor_thread():
 	printADC()
 
 if __name__ == "__main__":
+	
+	print("Runtime\t\tTemp Reading\t\tTemp\t\tLight Reading")
 	print_sensor_thread() # call it once to start the thread
 
 	# Tell our program to run indefinitely
