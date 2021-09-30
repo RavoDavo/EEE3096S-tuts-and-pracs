@@ -1,0 +1,30 @@
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.512892 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.539892 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.490892 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.461892 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.478892 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.553891 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.582891 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.485892 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.425893 ms
+bin/CHeterodyning
+Clock resolution: 1 ns
+Time: 7.443892 ms
