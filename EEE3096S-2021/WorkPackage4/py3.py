@@ -5,6 +5,7 @@ from time import sleep
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 import threading
+import datetime
 #board.D16 for the GPIO16
 
 # create the spi bus
@@ -32,7 +33,7 @@ def printADC():
 	
 	
 
-	print(str(i)+'s\t\t'+ str(Temp.value)+'\t\t\t'+str(round(TA,2))+" C\t\t"+str(LDR.value))
+	print(datetime.datetime.now()+'s\t\t'+ str(Temp.value)+'\t\t\t'+str(round(TA,2))+" C\t\t"+str(LDR.value))
 	
 
 	
@@ -47,7 +48,7 @@ def print_sensor_thread():
 	printADC()
 
 if __name__ == "__main__":
-	
+
 	print("Runtime\t\tTemp Reading\t\tTemp\t\tLight Reading")
 	print_sensor_thread() # call it once to start the thread
 
