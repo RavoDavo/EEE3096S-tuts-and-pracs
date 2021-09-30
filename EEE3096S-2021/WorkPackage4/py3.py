@@ -6,7 +6,10 @@ import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 import threading
 import datetime
+import RPi.GPIO as GPIO
 #board.D16 for the GPIO16
+
+btn_sample_rate = 36
 
 # create the spi bus
 spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
@@ -24,6 +27,13 @@ LDR = AnalogIn(mcp, MCP.P2)
 V0 = 0.5
 TC = 0.01
 
+def config():
+	"""
+	Setup the button and callbacks 
+	"""
+	GPIO.setmode(GPIO.BOARD) # Sets the GPIO numbering to board numbers
+	GPIO.setup(btn_sample_rate, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Setups the button
+	GPIO.add_event_detect(btn_sample_rate, GPIO.FALLING, callback=print_sensor_thread, bouncetime=150) # adds an event detection
 
 def printADC():
 	"""
@@ -43,6 +53,7 @@ def print_sensor_thread():
 	printADC()
 
 if __name__ == "__main__":
+	config()
 	print("Runtime\t\tTemp Reading\t\tTemp\t\tLight Reading")
 	print_sensor_thread() # call it once to start the thread
 
