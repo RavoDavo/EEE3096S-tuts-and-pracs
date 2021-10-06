@@ -1,12 +1,11 @@
 import busio
 import digitalio
 import board
-import time 
+import time
 import RPi.GPIO as GPIO
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 import threading
-#board.D16 for the GPIO16
 
 # create the spi bus
 spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
